@@ -2,7 +2,7 @@
  * @Author: AK-12
  * @Date: 2018-11-19 22:48:53
  * @Last Modified by: AK-12
- * @Last Modified time: 2018-11-20 15:14:42
+ * @Last Modified time: 2018-11-20 15:21:56
  */
 /**
  *Front
@@ -223,7 +223,6 @@ class MoveFront {
   private addKeyListener() {
     cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, event => {
       this.isHold = true
-      cc.log(event.keyCode)
       switch (event.keyCode) {
         case cc.macro.KEY.a:
         case cc.macro.KEY.left:
