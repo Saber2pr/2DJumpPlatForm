@@ -2,7 +2,7 @@
  * @Author: AK-12
  * @Date: 2018-11-19 22:48:53
  * @Last Modified by: AK-12
- * @Last Modified time: 2018-11-20 14:48:06
+ * @Last Modified time: 2018-11-20 15:14:42
  */
 /**
  *Front
@@ -101,18 +101,19 @@ class MoveFront {
    * @memberof MoveFront
    */
   public listen() {
-    this.addListener(this.leftBtn, () => {
+    this.addTouchListener(this.leftBtn, () => {
       this.front = Front.left
     })
-    this.addListener(this.rightBtn, () => {
+    this.addTouchListener(this.rightBtn, () => {
       this.front = Front.right
     })
-    this.addListener(this.upBtn, () => {
+    this.addTouchListener(this.upBtn, () => {
       this.front = Front.up
     })
-    this.addListener(this.downBtn, () => {
+    this.addTouchListener(this.downBtn, () => {
       this.front = Front.down
     })
+    this.addKeyListener()
   }
   /**
    *initPhysicsBody
@@ -191,13 +192,13 @@ class MoveFront {
     }
   }
   /**
-   *addListener
+   *addTouchListener
    *
    * @private
    * @param {cc.Node} node
    * @memberof MoveFront
    */
-  private addListener(node: cc.Node, callback?: Function) {
+  private addTouchListener(node: cc.Node, callback?: Function) {
     node.on(cc.Node.EventType.TOUCH_START, () => {
       this.isHold = true
       !!callback ? callback() : null
@@ -209,6 +210,40 @@ class MoveFront {
       this.isHold = false
     })
     node.on(cc.Node.EventType.TOUCH_CANCEL, () => {
+      this.isHold = false
+    })
+  }
+  /**
+   *addKeyListener
+   *
+   * @private
+   * @param {cc.Node} node
+   * @memberof MoveFront
+   */
+  private addKeyListener() {
+    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, event => {
+      this.isHold = true
+      cc.log(event.keyCode)
+      switch (event.keyCode) {
+        case cc.macro.KEY.a:
+        case cc.macro.KEY.left:
+          this.front = Front.left
+          break
+        case cc.macro.KEY.d:
+        case cc.macro.KEY.right:
+          this.front = Front.right
+          break
+        case cc.macro.KEY.w:
+        case cc.macro.KEY.up:
+          this.front = Front.up
+          break
+        case cc.macro.KEY.s:
+        case cc.macro.KEY.down:
+          this.front = Front.down
+          break
+      }
+    })
+    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, event => {
       this.isHold = false
     })
   }
