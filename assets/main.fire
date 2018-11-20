@@ -41,8 +41,8 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.3749755859374996,
-      "y": 0.3749755859374996,
+      "x": 0.3749755859375,
+      "y": 0.3749755859375,
       "z": 1
     },
     "_quat": {
@@ -678,8 +678,8 @@
     "_enabled": true,
     "_type": 2,
     "_allowSleep": true,
-    "_gravityScale": 1,
-    "_linearDamping": 0,
+    "_gravityScale": 20,
+    "_linearDamping": 10,
     "_angularDamping": 0,
     "_linearVelocity": {
       "__type__": "cc.Vec2",
@@ -687,8 +687,8 @@
       "y": 0
     },
     "_angularVelocity": 0,
-    "_fixedRotation": false,
-    "enabledContactListener": false,
+    "_fixedRotation": true,
+    "enabledContactListener": true,
     "bullet": false,
     "_id": "44LVpigZVFKZLTytjLSGq7"
   },
@@ -1039,9 +1039,8 @@
     "hero": {
       "__id__": 13
     },
-    "gravityScale": 9,
-    "damping": 43,
-    "isRotate": 0,
+    "landImpulse": 1000,
+    "portImpulse": 30000,
     "cameraActive": 0,
     "_id": "cdZGk7SvFJ44aWO1wQQ+6y"
   },

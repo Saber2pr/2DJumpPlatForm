@@ -2,7 +2,7 @@
  * @Author: AK-12
  * @Date: 2018-10-30 22:46:42
  * @Last Modified by: AK-12
- * @Last Modified time: 2018-11-19 23:13:56
+ * @Last Modified time: 2018-11-20 14:03:45
  */
 /**
  * 给定点和最大极径，限制点的活动范围
@@ -59,7 +59,7 @@ let toWPos = (node: cc.Node) =>
  * convertToNodeSpaceAR
  * @param node
  */
-export let toLPos = (node: cc.Node, pos: cc.Vec2): cc.Vec2 =>
+let toLPos = (node: cc.Node, pos: cc.Vec2): cc.Vec2 =>
   node.getParent().convertToNodeSpaceAR(pos)
 /**
  *follow
@@ -70,43 +70,61 @@ let follow = (follower: cc.Node, target: cc.Node) => {
   follower.setPosition(toLPos(follower, toWPos(target)))
 }
 /**
+ * angleLimited
+ * @param angle
+ * @param min
+ * @param max
+ * @param callback
+ */
+let angleLimited = (
+  angle: number,
+  min: number,
+  max: number,
+  stepIn_callback?: Function,
+  stepOut_callback?: Function
+) => {
+  if (radToAngle(angle) > min && radToAngle(angle) < max) {
+    !!stepIn_callback ? stepIn_callback() : null
+  } else {
+    !!stepOut_callback ? stepOut_callback() : null
+  }
+}
+/**
  *MoveCtrllor
  *
  * @export
  * @class MoveCtrllor
  */
 class MoveCtrllor {
-  private Damping: number = 50
   private angle: number
   private status: boolean
-  private LENGTH: number = 500
   private targetBody: cc.RigidBody
-  private node: cc.Node
-  private isRotate: boolean
+  private isOnGround: boolean
+  private isJumped: boolean
   private __ANCHOR__: cc.Vec2
+  private landImpulse: number
+  private portImpulse: number
   /**
-   * MoveCtrllor
-   * @param basicNode
-   * @param touchNode
-   * @param target
-   * @param damp
+   *Creates an instance of MoveCtrllor.
+   * @param {cc.Node} basicNode
+   * @param {cc.Node} touchNode
+   * @param {cc.Node} target
+   * @param {number} landImpulse
+   * @param {number} portImpulse
+   * @memberof MoveCtrllor
    */
   constructor(
     basicNode: cc.Node,
     touchNode: cc.Node,
     target: cc.Node,
-    damp: number = 50,
-    isRotate: boolean = true,
-    gravityScale: number = 0
+    landImpulse: number,
+    portImpulse: number
   ) {
     this.refresh(touchNode)
-    this.node = target
-    this.targetBody = target.getComponent(cc.RigidBody)
-    this.damping = damp
-    this.isRotate = isRotate
     this.__ANCHOR__ = toWPos(basicNode)
     this.addListener(basicNode, touchNode)
-    this.targetBody.gravityScale = gravityScale
+    this.initPhysicsBody(target, landImpulse, portImpulse)
+    this.initContact()
   }
   /**
    *添加监听
@@ -117,9 +135,21 @@ class MoveCtrllor {
     basicNode.on('touchstart', event => {
       this.status = true
       this.update(basicNode, touchNode, event)
+      this.isJumped = false
     })
     basicNode.on('touchmove', event => {
       this.update(basicNode, touchNode, event)
+      angleLimited(
+        this.angle,
+        45,
+        135,
+        () => {
+          this.isOnGround && !this.isJumped ? this.jump() : null
+        },
+        () => {
+          this.isJumped = false
+        }
+      )
     })
     basicNode.on('touchend', () => {
       this.refresh(touchNode)
@@ -150,17 +180,69 @@ class MoveCtrllor {
     touchNode.setPosition(0, 0)
   }
   /**
-   *speed
+   *initPhysicsBody
    *
+   * @private
+   * @param {cc.Node} target
+   * @param {number} landImpulse
+   * @param {number} portImpulse
    * @memberof MoveCtrllor
    */
-  set damping(value: number) {
-    this.targetBody.linearDamping = this.LENGTH / value
-    this.targetBody.angularDamping = this.LENGTH / value
-    this.Damping = value
+  private initPhysicsBody(
+    target: cc.Node,
+    landImpulse: number,
+    portImpulse: number
+  ) {
+    this.targetBody = target.getComponent(cc.RigidBody)
+    this.landImpulse = landImpulse
+    this.portImpulse = portImpulse
   }
-  get damping(): number {
-    return this.Damping
+  /**
+   *initContact
+   *
+   * @private
+   * @memberof MoveCtrllor
+   */
+  private initContact() {
+    this.targetBody.onBeginContact = () => {
+      this.isOnGround = true
+    }
+  }
+  /**
+   *jump
+   *
+   * @private
+   * @memberof MoveCtrllor
+   */
+  private jump() {
+    if (this.angle < 90) {
+      this.targetBody.applyLinearImpulse(
+        getPos(this.angle, this.portImpulse),
+        this.targetBody.getWorldCenter(),
+        true
+      )
+    } else {
+      this.targetBody.applyLinearImpulse(
+        getPos(this.angle, this.portImpulse),
+        this.targetBody.getWorldCenter(),
+        true
+      )
+    }
+    this.isOnGround = false
+    this.isJumped = true
+  }
+  /**
+   *move
+   *
+   * @private
+   * @memberof MoveCtrllor
+   */
+  private move() {
+    this.targetBody.applyLinearImpulse(
+      cc.v2(getPos(this.angle, this.landImpulse).x, 0),
+      this.targetBody.getWorldCenter(),
+      true
+    )
   }
   /**
    *step
@@ -170,12 +252,7 @@ class MoveCtrllor {
    */
   public step(): void {
     if (this.status === true) {
-      this.targetBody.applyLinearImpulse(
-        getPos(this.angle, this.LENGTH),
-        this.targetBody.getWorldCenter(),
-        true
-      )
-      this.isRotate ? this.node.setRotation(-radToAngle(this.angle)) : null
+      this.move()
     }
   }
 }
@@ -207,32 +284,15 @@ export default class MoveBoot extends cc.Component {
 
   @property({
     type: cc.Integer,
-    tooltip: '默认0',
-    displayName: '重力',
-    slide: true,
-    min: 0,
-    max: 20,
-    step: 1
+    displayName: '水平冲量模'
   })
-  gravityScale: number = 0
+  landImpulse: number = 1000
 
   @property({
     type: cc.Integer,
-    tooltip: '默认50',
-    displayName: '速度',
-    slide: true,
-    min: 1,
-    max: 200,
-    step: 1
+    displayName: '垂直冲量模'
   })
-  damping: number = 50
-
-  @property({
-    type: cc.Enum(OPTIONS),
-    displayName: '是否旋转',
-    tooltip: '以x轴正向为0'
-  })
-  isRotate = OPTIONS.YES
+  portImpulse: number = 30000
 
   @property({
     type: cc.Enum(OPTIONS),
@@ -250,9 +310,8 @@ export default class MoveBoot extends cc.Component {
       this.node,
       this.touch,
       this.hero,
-      this.damping,
-      Boolean(this.isRotate),
-      this.gravityScale
+      this.landImpulse,
+      this.portImpulse
     )
     this.camera = cc.Canvas.instance.node.getComponentInChildren(cc.Camera).node
   }
