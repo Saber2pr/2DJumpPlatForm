@@ -2,7 +2,7 @@
  * @Author: AK-12
  * @Date: 2018-10-30 22:46:42
  * @Last Modified by: AK-12
- * @Last Modified time: 2018-11-20 14:03:45
+ * @Last Modified time: 2018-11-20 14:35:45
  */
 /**
  * 给定点和最大极径，限制点的活动范围
@@ -27,8 +27,8 @@ let getAngle = (Pos: cc.Vec2): number =>
  * @param {*} radius
  * @returns
  */
-let getPos = (angle: number, radius: number): cc.Vec2 =>
-  cc.v2(radius * Math.cos(angle), radius * Math.sin(angle))
+let getPos = (rad: number, radius: number): cc.Vec2 =>
+  cc.v2(radius * Math.cos(rad), radius * Math.sin(rad))
 /**
  *给定点，获取极径
  *
