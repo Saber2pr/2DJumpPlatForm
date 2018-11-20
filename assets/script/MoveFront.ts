@@ -2,7 +2,7 @@
  * @Author: AK-12
  * @Date: 2018-11-19 22:48:53
  * @Last Modified by: AK-12
- * @Last Modified time: 2018-11-20 14:35:44
+ * @Last Modified time: 2018-11-20 14:48:06
  */
 /**
  *Front
@@ -164,7 +164,7 @@ class MoveFront {
           this.isOnGround ? this.jump() : null
           break
         case Front.down:
-          this.apply(getPos(0, 0))
+          this.apply(getPos(-Math.PI / 2, this.portImpulse))
           break
       }
     }
